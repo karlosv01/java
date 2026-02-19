@@ -9,13 +9,8 @@ pipeline {
   agent any
 
     environment {
-    // TODO (E6.4): Define variables reutilizables:
-    // - IMAGE_NAME (tag para docker build)
-    // - APP_URL (endpoint para e2e)
-     CI_IMAGE_NAME //(imagen construida desde devops/ci.Dockerfile para usar `make`)
-    // - (opcional E7) REGISTRY y REGISTRY_CREDS_ID
-    // - (opcional E10) VERSION_JAR para cd.Dockerfile
-  }
+    CI_IMAGE_NAME = "java-ci-tools:${env.BUILD_NUMBER}"
+    }
 
   stages {
     stage('Info') {
@@ -34,7 +29,7 @@ pipeline {
         script {
           // TODO (E3): Construye una imagen de CI desde devops/ci.Dockerfile.
           // Ejemplo:
-          env.CI_IMAGE_NAME = "java-ci-tools:${env.BUILD_NUMBER}"
+          echo "Building CI image: ${env.CI_IMAGE_NAME}"
           docker.build(env.CI_IMAGE_NAME, '-f devops/ci.Dockerfile .')
         }
       }
@@ -55,8 +50,8 @@ pipeline {
     stage('CI - Test') {
       steps {
         script {
-        // TODO (E3/E4): Ejecuta `make test` dentro de la imagen CI construida.
-         runInDocker(env.CI_IMAGE_NAME) { sh 'make test' }
+          // TODO (E3/E4): Ejecuta `make test` dentro de la imagen CI construida.
+          runInDocker(env.CI_IMAGE_NAME) { sh 'make test' }
         }
       }
     }
