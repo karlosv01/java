@@ -10,8 +10,14 @@ pipeline {
 
     environment {
     CI_IMAGE_NAME = "java-ci-tools:${env.BUILD_NUMBER}"
+    APP_URL = 'http://localhost:5001/'
     }
-
+  // =========================
+  // Ejercicio 6.3 (parámetros)
+  // =========================
+  parameters {
+    booleanParam(name: 'RUN_CD', defaultValue: false, description: 'Ejecutar CD (solo develop/master)')
+  }
   stages {
     stage('Info') {
       steps {
@@ -61,6 +67,49 @@ pipeline {
           // TODO (E5): Construye la imagen Docker usando el Dockerfile del repo:
           def version = readFile('VERSION').trim()
           docker.build(env.CI_IMAGE_NAME, "--build-arg VERSION=${version} -f devops/Dockerfile .")
+        }
+      }
+    }
+    // =========================
+    // Ejercicio 6 (compose) + Ejercicio 6.1 (solo develop/master) + Ejercicio 6.3 (RUN_CD)
+    // =========================
+    stage('CD') {
+      when {
+        // [E6.1][E6.3] TODO: ejecutar CD por rama o parámetro.
+        // - Si RUN_CD=true, ejecutar en cualquier rama.
+        // - Si RUN_CD=false, ejecutar solo en develop/master.
+        // Ejemplo:
+        anyOf {
+          expression { return params.RUN_CD }
+          branch 'develop'
+          branch 'master'
+        }
+      }
+      steps {
+        script {
+          // [E6.2] TODO: calcular DEPLOY_ENV y COMPOSE_PROJECT.
+          // Ejemplo:
+          //env.BRANCH_NAME
+          echo "Branch actual: ${env.BRANCH_NAME}"
+          echo "RUN_CD: ${params.RUN_CD}"
+
+          env.DEPLOY_ENV = (env.BRANCH_NAME == 'master') ? 'PRO' : 'DEV'
+          echo "Deploying to ${env.DEPLOY_ENV}"
+
+          echo "Imagen: ${env.IMAGE_NAME}"
+          sh "echo URL=${APP_URL}"
+        }
+      }
+      post {
+        // [E6.5] TODO: añade limpieza y reporting.
+        always {
+          sh 'docker compose down --volumes || true'
+          sh "docker rmi ${env.CI_IMAGE_NAME} || true"
+        }
+        success { echo 'SUCCESS' }
+        failure {
+          echo 'FAILURE'
+          sh 'docker compose logs || true'
         }
       }
     }
