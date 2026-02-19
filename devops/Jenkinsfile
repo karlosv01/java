@@ -1,3 +1,9 @@
+def runInDocker(String image, Closure body) {
+    docker.image(image).inside {
+        body()
+    }
+}
+
 pipeline {
   // `agent any` = el pipeline se ejecuta en cualquier nodo/agente disponible.
   agent any
@@ -5,9 +11,20 @@ pipeline {
   stages {
     stage('Info') {
       steps {
-      // TODO (E1): imprime JOB_NAME y BUILD_NUMBER
+        // TODO (E1): imprime JOB_NAME y BUILD_NUMBER
         sh 'echo "JOB_NAME: ${JOB_NAME}"'
         sh 'echo "BUILD_NUMBER: ${BUILD_NUMBER}"'
+      }
+    }
+    stage('CI - Test') {
+      steps {
+        script {
+          // TODO (E2/E4): Ejecuta los tests unitarios dentro de python:3.6-slim.
+          // Ejemplo conceptual:
+          runInDocker('maven:3.8.6-openjdk-11-slim') {
+            sh 'mvn test' // la imagen lleva
+          }
+        }
       }
     }
   }
