@@ -1,67 +1,13 @@
-def runInDocker(String image, Closure body) {
-  docker.image(image).inside {
-        body()
-  }
-}
-
 pipeline {
   // `agent any` = el pipeline se ejecuta en cualquier nodo/agente disponible.
   agent any
 
-    environment {
-    CI_IMAGE_NAME = "java-ci-tools:${env.BUILD_NUMBER}"
-    }
-
   stages {
     stage('Info') {
       steps {
-        // TODO (E1): imprime JOB_NAME y BUILD_NUMBER
+      // TODO (E1): imprime JOB_NAME y BUILD_NUMBER
         sh 'echo "JOB_NAME: ${JOB_NAME}"'
         sh 'echo "BUILD_NUMBER: ${BUILD_NUMBER}"'
-      }
-    }
-
-    // =========================
-    // Ejercicio 3 (preparación): construir imagen CI con make
-    // =========================
-    stage('CI - Build tools image') {
-      steps {
-        script {
-          // TODO (E3): Construye una imagen de CI desde devops/ci.Dockerfile.
-          // Ejemplo:
-          echo "Building CI image: ${env.CI_IMAGE_NAME}"
-          docker.build(env.CI_IMAGE_NAME, '-f devops/ci.Dockerfile .')
-        }
-      }
-    }
-
-    // =========================
-    // Ejercicio 3 (lint/test con Makefile) + Ejercicio 4 (refactor con runInDocker)
-    // =========================
-    stage('CI - Lint') {
-      steps {
-        script {
-          // TODO (E3/E4): Ejecuta `make lint` dentro de la imagen CI construida.
-          runInDocker(env.CI_IMAGE_NAME) { sh 'make lint' }
-        }
-      }
-    }
-
-    stage('CI - Test') {
-      steps {
-        script {
-          // TODO (E3/E4): Ejecuta `make test` dentro de la imagen CI construida.
-          runInDocker(env.CI_IMAGE_NAME) { sh 'make test' }
-        }
-      }
-    }
-    stage('CI - Build image') {
-      steps {
-        script {
-          // TODO (E5): Construye la imagen Docker usando el Dockerfile del repo:
-          def version = readFile('VERSION').trim()         
-          docker.build(env.CI_IMAGE_NAME, "--build-arg VERSION=${version} -f devops/Dockerfile .")
-        }
       }
     }
   }
