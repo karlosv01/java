@@ -1,12 +1,16 @@
 def runInDocker(String image, Closure body) {
-    docker.image(image).inside {
+  docker.image(image).inside {
         body()
-    }
+  }
 }
 
 pipeline {
   // `agent any` = el pipeline se ejecuta en cualquier nodo/agente disponible.
   agent any
+
+    environment {
+    CI_IMAGE_NAME = "java-ci-tools:${env.BUILD_NUMBER}"
+    }
 
   stages {
     stage('Info') {
@@ -16,14 +20,38 @@ pipeline {
         sh 'echo "BUILD_NUMBER: ${BUILD_NUMBER}"'
       }
     }
+
+    // =========================
+    // Ejercicio 3 (preparación): construir imagen CI con make
+    // =========================
+    stage('CI - Build tools image') {
+      steps {
+        script {
+          // TODO (E3): Construye una imagen de CI desde devops/ci.Dockerfile.
+          // Ejemplo:
+          echo "Building CI image: ${env.CI_IMAGE_NAME}"
+          docker.build(env.CI_IMAGE_NAME, '-f devops/ci.Dockerfile .')
+        }
+      }
+    }
+
+    // =========================
+    // Ejercicio 3 (lint/test con Makefile) + Ejercicio 4 (refactor con runInDocker)
+    // =========================
+    stage('CI - Lint') {
+      steps {
+        script {
+          // TODO (E3/E4): Ejecuta `make lint` dentro de la imagen CI construida.
+          runInDocker(env.CI_IMAGE_NAME) { sh 'make lint' }
+        }
+      }
+    }
+
     stage('CI - Test') {
       steps {
         script {
-          // TODO (E2/E4): Ejecuta los tests unitarios dentro de python:3.6-slim.
-          // Ejemplo conceptual:
-          runInDocker('maven:3.8.6-openjdk-11-slim') {
-            sh 'mvn test' // la imagen lleva
-          }
+          // TODO (E3/E4): Ejecuta `make test` dentro de la imagen CI construida.
+          runInDocker(env.CI_IMAGE_NAME) { sh 'make test' }
         }
       }
     }
