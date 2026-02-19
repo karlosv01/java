@@ -59,9 +59,8 @@ pipeline {
       steps {
         script {
           // TODO (E5): Construye la imagen Docker usando el Dockerfile del repo:
-          def version = readFile('VERSION').trim()
-          echo "Building image: devops-training-java-app:${version}"
-          docker.build(env.IMAGE_NAME, "--build-arg VERSION=${version} -f devops/Dockerfile .")
+          def version = readFile('VERSION').trim()         
+          docker.build(env.CI_IMAGE_NAME, "--build-arg VERSION=${version} -f devops/Dockerfile .")
         }
       }
     }
