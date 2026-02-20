@@ -1,5 +1,3 @@
-version: "3.7"
-
 networks:
   java-project-net:
     driver: bridge
@@ -15,10 +13,10 @@ networks:
 services:
   ## TO BUILD AND RUN APP LOCALLY
   app:
-    #image: scalian_training-java-hello-world:0.0.2
-    build: 
-      context: .
-      dockerfile: devops/Dockerfile
+    image: mi-aplicacion-ci:0.0.1 # Imagen que debe usar (debe coincidir con la que creas en el CI)
+    # build:                    # (Comentado) Si no existiera la imagen, Docker intentaría construirla
+    #   context: .              # (Comentado) Ubicación de los archivos para construir la imagen
+    #   dockerfile: devops/ci.Dockerfile # (Comentado) Ruta específica del Dockerfile de CI
     container_name: java_app
     ports:
       - 8084:8080
@@ -53,4 +51,5 @@ services:
   #   networks:
   #     java-project-net:
   #       aliases: 
+
   #         - sonardb
